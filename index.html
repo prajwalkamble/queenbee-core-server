@@ -632,13 +632,13 @@ $ _</code></pre>
 
   <!-- ── Reconnection acknowledgment (inline, runs BEFORE script.js) ──
        If we arrived here from the offline page's recovery transition
-       (URL carries #recovered), inject a green first line into the boot
+       (URL carries #live), inject a green first line into the boot
        loader's terminal so the loader tells the story: link restored,
        then the normal bash boot continues beneath it. The flag is then
        stripped from the URL so refreshes/bookmarks look clean. -->
   <script>
     (function () {
-      if (location.hash !== "#recovered") return;
+      if (location.hash !== "#live") return;
       var term = document.getElementById("loaderTerm");
       if (term) {
         var line = document.createElement("div");
@@ -648,7 +648,7 @@ $ _</code></pre>
         line.append(tag);
         term.append(line);
       }
-      /* remove #recovered without adding a history entry */
+      /* remove #live without adding a history entry */
       history.replaceState(null, "", location.pathname + location.search);
     })();
   </script>
