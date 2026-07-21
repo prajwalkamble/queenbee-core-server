@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>queenbee-core-srv · temporarily offline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0b0e; --surface: #12151c; --surface-2: #171b24;
+      --border: #232a36; --text: #e8eaf0; --text-dim: #9aa3b2;
+      --accent: #4d7cfe; --err: #ff5f57; --ok: #3ddc84;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Inter", sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      overflow-x: hidden;
+    }
+    /* slim identity header — brand only, no navigation (the site is down;
+       the page's two buttons are the navigation) */
+    .top {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.95rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .top__dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--err);
+      animation: pulse 1.6s infinite;
+    }
+    .top__host { font-family: "JetBrains Mono", monospace; font-size: 0.85rem; letter-spacing: 0.04em; }
+    .stage { flex: 1; display: grid; place-items: center; padding: 2rem 1.5rem; }
+    /* one-line footer — links point ONLY at infrastructure that is up
+       while this page is showing (never the server's own URL) */
+    .bottom {
+      border-top: 1px solid var(--border);
+      padding: 1.1rem 1.5rem;
+      display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;
+      font-size: 0.8rem; color: var(--text-dim);
+    }
+    .bottom a { color: var(--accent); }
+    .bottom a:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .bottom .yr { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 0.72rem; }
+    .bottom .yr .copy { font-size: 1rem; line-height: 0; vertical-align: -0.12em; color: var(--text); }
+    .wrap { width: min(560px, 100%); display: flex; flex-direction: column; gap: 1.2rem; }
+
+    /* status terminal */
+    .term {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      animation: rise 0.6s var(--ease) both;
+    }
+    .term__bar {
+      display: flex; align-items: center; gap: 7px;
+      padding: 0.65rem 1rem; background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    .term__light { width: 10px; height: 10px; border-radius: 50%; }
+    .term__light:nth-child(1) { background: #ff5f57; }
+    .term__light:nth-child(2) { background: #febc2e; }
+    .term__light:nth-child(3) { background: #28c840; }
+    .term__label {
+      margin-left: auto; font-family: "JetBrains Mono", monospace;
+      font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-dim);
+    }
+    .term__body { padding: 1.4rem 1.4rem 1.5rem; font-family: "JetBrains Mono", monospace; font-size: 0.85rem; line-height: 2; }
+    .status { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+    .status__dot {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--err);
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 95, 87, 0.45); }
+      55% { box-shadow: 0 0 0 10px rgba(255, 95, 87, 0); }
+    }
+    .status__text { font-weight: 500; color: var(--err); letter-spacing: 0.04em; }
+    .term__line { color: var(--text-dim); min-height: 1.6em; }
+    .term__line .hl { color: var(--text); }
+    .caret {
+      display: inline-block; width: 8px; height: 1em; background: var(--accent);
+      vertical-align: -0.15em; animation: blink 1s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 700;
+      animation: rise 0.6s var(--ease) 0.1s both;
+    }
+    .lede { color: var(--text-dim); animation: rise 0.6s var(--ease) 0.18s both; }
+
+    .actions { display: flex; gap: 0.8rem; flex-wrap: wrap; animation: rise 0.6s var(--ease) 0.26s both; }
+    .btn {
+      font-family: "Space Grotesk", sans-serif; font-size: 0.92rem; font-weight: 500;
+      padding: 0.75rem 1.4rem; border-radius: 10px; text-decoration: none;
+      border: 1px solid transparent;
+      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), border-color 0.22s, color 0.22s;
+    }
+    .btn--primary { background: var(--accent); color: #fff; }
+    .btn--primary:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(77, 124, 254, 0.4); }
+    .btn--ghost { border-color: var(--border); color: var(--text-dim); }
+    .btn--ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+    /* contact card */
+    .contact {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.4rem;
+      animation: rise 0.6s var(--ease) 0.34s both;
+    }
+    .contact h2 {
+      font-family: "Space Grotesk", sans-serif; font-size: 1.05rem; margin-bottom: 0.9rem;
+    }
+    .contact form { display: flex; flex-direction: column; gap: 0.7rem; }
+    .field {
+      font: inherit; font-size: 0.9rem; color: var(--text);
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 9px; padding: 0.7rem 0.9rem; outline: none; resize: vertical;
+      transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+    }
+    .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(77, 124, 254, 0.15); }
+    .contact button { align-self: flex-start; cursor: pointer; background: var(--accent); color: #fff; border: none; }
+    .contact__hint { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.5rem; }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+    /* faint drifting glyphs */
+    .glyphs { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
+    .glyphs span {
+      position: absolute; font-family: "JetBrains Mono", monospace;
+      font-size: 0.9rem; color: var(--text-dim); opacity: 0.06; white-space: nowrap;
+      animation: drift var(--d) ease-in-out infinite alternate;
+    }
+    @keyframes drift { from { transform: translateY(-10px); } to { transform: translateY(10px); } }
+
+    /* ── Live retry ticker + speculative status ── */
+    .retry { font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--text-dim); }
+    .retry b { color: var(--accent); font-weight: 500; }
+    .spec { font-family: "JetBrains Mono", monospace; font-size: 0.74rem; color: var(--text-dim); opacity: 0.75; min-height: 1.5em; }
+    .spec::before { content: "> "; color: var(--ok); }
+
+    /* ── Mini game card (terminal style) ── */
+    .game {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      animation: rise 0.6s var(--ease) 0.3s both;
+    }
+    .game__bar { display: flex; align-items: center; gap: 7px; padding: 0.6rem 1rem; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+    .game__file { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 0.68rem; letter-spacing: 0.1em; color: var(--text-dim); }
+    .game__body { padding: 1.1rem 1.2rem 1.2rem; font-family: "JetBrains Mono", monospace; font-size: 0.8rem; line-height: 2; }
+    .game__out { display: flex; flex-direction: column; gap: 0.3rem; }
+    .game__dim { color: var(--text-dim); }
+    .game__ok { color: var(--ok); }
+    .game__row { display: flex; align-items: center; gap: 0.5rem; color: var(--text-dim); margin-top: 0.4rem; }
+    .game__input {
+      width: 76px; padding: 0.15rem 0.3rem; font: inherit; color: var(--text);
+      text-align: center; background: transparent; border: none;
+      border-bottom: 1px solid var(--text-dim); outline: none;
+      appearance: textfield; -moz-appearance: textfield;
+    }
+    .game__input::-webkit-outer-spin-button, .game__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .game__input:focus { border-bottom-color: var(--accent); }
+    .game__again { background: none; border: none; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+    /* ── File row for the contact form ── */
+    .file-row { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+    .file-btn {
+      font-family: "Space Grotesk", sans-serif; font-size: 0.85rem;
+      padding: 0.6rem 1.1rem; border-radius: 9px; cursor: pointer;
+      background: var(--surface-2); border: 1px dashed var(--border); color: var(--text-dim);
+      transition: border-color 0.25s var(--ease), color 0.25s;
+    }
+    .file-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .file-name { font-family: "JetBrains Mono", monospace; font-size: 0.72rem; color: var(--text-dim); }
+
+    /* ── Boot transition overlay: shown when the server comes back ── */
+    .bootup {
+      position: fixed; inset: 0; z-index: 300;
+      display: none; place-items: center;
+      background: var(--bg);
+      animation: fadein 0.35s var(--ease);
+    }
+    .bootup.on { display: grid; }
+    @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+    .bootup__box { width: min(430px, 86vw); display: flex; flex-direction: column; gap: 1rem; }
+    .bootup__status { display: flex; align-items: center; gap: 0.6rem; font-family: "JetBrains Mono", monospace; font-size: 0.85rem; }
+    .bootup__dot {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--ok);
+      animation: okpulse 1.4s infinite;
+    }
+    @keyframes okpulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(61,220,132,.45); }
+      55% { box-shadow: 0 0 0 10px rgba(61,220,132,0); }
+    }
+    .bootup__status b { color: var(--ok); font-weight: 500; letter-spacing: 0.04em; }
+    .bootup__term {
+      font-family: "JetBrains Mono", monospace; font-size: 0.8rem; line-height: 2;
+      color: var(--text-dim); min-height: 6.2em;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.15rem;
+    }
+    .bootup__term .ok { color: var(--ok); }
+    .bootup__bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .bootup__bar span { display: block; height: 100%; width: 0; background: var(--ok); transition: width 0.4s var(--ease); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, .status__dot, .caret, .glyphs span, .bootup__dot { animation: none !important; }
+      .term, h1, .lede, .actions, .contact { opacity: 1 !important; transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glyphs" aria-hidden="true">
+    <span style="left:6%;  top:12%; --d:16s;">$ systemctl status</span>
+    <span style="left:78%; top:18%; --d:19s;">rebooting…</span>
+    <span style="left:12%; top:78%; --d:21s;">journalctl -f</span>
+    <span style="left:72%; top:82%; --d:17s;">&lt;/&gt;</span>
+  </div>
+
+  <!-- slim identity header: whose page is this (brand mark only) -->
+  <header class="top">
+    <span class="top__dot" aria-hidden="true"></span>
+    <span class="top__host">queenbee-core-srv</span>
+  </header>
+
+  <div class="stage">
+  <main class="wrap">
+    <div class="term" role="status">
+      <div class="term__bar">
+        <span class="term__light"></span><span class="term__light"></span><span class="term__light"></span>
+        <span class="term__label">queenbee-core-srv</span>
+      </div>
+      <div class="term__body">
+        <div class="status">
+          <span class="status__dot"></span>
+          <span class="status__text">SERVICE TEMPORARILY OFFLINE</span>
+        </div>
+        <div class="term__line" id="typed"></div>
+        <div class="spec" id="specLine">server status: speculating…</div>
+      </div>
+    </div>
+
+    <h1>The server is taking a short nap.</h1>
+    <p class="lede">
+      The reverse proxy is up, but the application it forwards to isn't answering —
+      typically a container restart, a deployment in progress, or scheduled
+      maintenance. Services on this machine are self-healing and normally return
+      within a few minutes. In the meantime, my portfolio below is hosted
+      independently and remains fully available.
+    </p>
+
+    <div class="actions">
+      <a class="btn btn--primary" href="https://prajwalpk.vercel.app/">Visit my portfolio ↗</a>
+      <a class="btn btn--ghost" id="aboutBtn" href="about-server.html">More about server →</a>
+    </div>
+
+    <!-- ── While you wait: a tiny terminal game so the outage isn't boring ── -->
+    <div class="game">
+      <div class="game__bar">
+        <span class="term__light"></span><span class="term__light"></span><span class="term__light"></span>
+        <span class="game__file">while-you-wait: guess.sh</span>
+      </div>
+      <div class="game__body">
+        <div class="game__dim">The server naps; the shell still works. I picked a number from 1 to 100.</div>
+        <div class="game__out" id="gameOut"></div>
+        <div class="game__row" id="gameRow">
+          <span class="game__ok">$</span> guess
+          <input class="game__input" id="gameInput" type="number" min="1" max="100" placeholder="1-100" aria-label="Your guess" />
+          <span>⏎</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact">
+      <h2>Reach the server administrator</h2>
+      <form id="contactForm">
+        <input class="field" id="cName" type="text" placeholder="Name" required />
+        <input class="field" id="cEmail" type="email" placeholder="Email" required />
+        <textarea class="field" id="cMsg" rows="3" placeholder="Message for the server admin" required></textarea>
+        <!-- File attachment (e.g. a JD): shown only when a form backend is
+             configured — mailto cannot carry attachments (see script CONFIG) -->
+        <div class="file-row" id="fileRow">
+          <label class="file-btn" for="cFile">Upload a file</label>
+          <input id="cFile" type="file" accept=".pdf,.doc,.docx" style="display:none" />
+          <span class="file-name" id="fileName">no file selected</span>
+        </div>
+        <button class="btn" type="submit" id="sendBtn">Send email →</button>
+      </form>
+    </div>
+  </main>
+  </div>
+
+  <!-- one-line footer: attribution; links only to always-up infrastructure -->
+  <footer class="bottom">
+    <span>Designed, Developed &amp; self-hosted by
+      <a href="https://prajwalpk.vercel.app/" target="_blank" rel="noopener">Prajwal Kamble</a></span>
+    <a href="https://github.com/prajwalkamble" target="_blank" rel="noopener">GitHub</a>
+    <span class="yr"><span class="copy">©</span> <span id="yr"></span> Prajwal Kamble · All rights reserved</span>
+  </footer>
+
+  <!-- ── Boot transition: appears the moment the server is detected online,
+       plays a short "loading the server" sequence, then navigates ── -->
+  <div class="bootup" id="bootup" aria-live="polite">
+    <div class="bootup__box">
+      <div class="bootup__status">
+        <span class="bootup__dot"></span>
+        <b>SERVER ONLINE — CONNECTING</b>
+      </div>
+      <div class="bootup__term" id="bootTerm"></div>
+      <div class="bootup__bar"><span id="bootFill"></span></div>
+    </div>
+  </div>
+
+  <script>
+    /* ══════════════════════════════════════════════════════════════════
+       OFFLINE PAGE LOGIC — runs in one of two modes:
+
+       MODE A · "standalone"  — this file was opened directly as
+         offline.html (from disk, or on GitHub Pages after the hub's
+         connectivity guard redirected here). In this mode we POLL the
+         server; the moment it answers, we navigate back to index.html
+         automatically — the "hub reloads by itself" behavior.
+
+       MODE B · "error page"  — this file was served by Nginx as the
+         error_page for 502/503/504. The URL in the address bar is NOT
+         offline.html (it's "/" or whatever route failed). Here we poll
+         the SAME route with a real same-origin fetch and reload it once
+         it returns HTTP OK — auto-recovery on the server side too.
+
+       Mode detection: if the address bar path ends in "offline.html"
+       (or we're a local file), we are standalone; otherwise error page.
+       ══════════════════════════════════════════════════════════════════ */
+    (function () {
+      "use strict";
+      document.getElementById("yr").textContent = new Date().getFullYear();
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* ---- CONFIG — the only lines you may ever need to edit ---- */
+      var SERVER_URL     = "https://queenbee-core-srv.emperor-adelie.ts.net/server/"; // reachability probe target (static path)
+      /* Where to send the viewer once the server is back (standalone mode):
+         · opened from LOCAL DISK  -> the hub sits one folder up (../index.html)
+         · opened on GITHUB PAGES  -> there is no hub next to us; go to the
+           server's own hub URL, which just became reachable again          */
+      var HUB_LOCAL      = "../index.html";
+      var HUB_REMOTE     = "https://queenbee-core-srv.emperor-adelie.ts.net/server/";
+      /* About page destinations:
+         · standalone: docs/index.html is our SIBLING in this folder        */
+      var ABOUT_LOCAL    = "about-server.html";  // the About page is our sibling in docs/
+      var ABOUT_FALLBACK = "https://prajwalkamble.github.io/queenbee-core-server/about-server.html"; // error-page mode: absolute Pages URL (always up)
+      var ADMIN_EMAIL    = "your-email@example.com";              // ← REPLACE with your real address before deploying
+      /* Optional form backend (e.g. a Formspree/Web3Forms-style endpoint).
+         Leave EMPTY -> the form falls back to mailto: (opens the visitor's
+         email app; they attach files THERE, since mailto can't carry them).
+         Set a URL -> the form POSTs name/email/message + the attached file
+         to that service, which emails it to you — works while the server
+         is down because the service is independent infrastructure. */
+      var CONTACT_ENDPOINT = "";
+      var POLL_MS        = 8000;                                  // how often to re-check the server
+
+      /* ---- Mode detection: this page is served as an Nginx error_page
+         ONLY when the host is the server itself (ts.net). Opened from
+         disk (empty hostname) or GitHub Pages (github.io) -> standalone. */
+      var standalone = location.hostname.indexOf(".ts.net") === -1;
+
+      /* ---- About button: pick the destination that exists in this mode.
+         Standalone: the file sits next to index.html, so the relative
+         path works locally AND on GitHub Pages.
+         Error-page mode: the browser's path is "/", so a relative link
+         would point at the server (which may not host that folder) —
+         use the always-up GitHub Pages URL instead. ---- */
+      document.getElementById("aboutBtn").href = standalone ? ABOUT_LOCAL : ABOUT_FALLBACK;
+
+      /* ---- Typed status line (visual only) ---- */
+      var el = document.getElementById("typed");
+      var msg = "$ curl https://queenbee-core-srv — upstream not responding. retrying…";
+      if (reduce) { el.textContent = msg; }
+      else {
+        var i = 0;
+        (function type() {
+          if (i <= msg.length) {
+            el.innerHTML = '<span class="hl">' + msg.slice(0, i) + '</span><span class="caret"></span>';
+            i++; setTimeout(type, 22);
+          }
+        })();
+      }
+
+      /* ---- probe(): "is the server back?" ----
+         Standalone: cross-origin no-cors fetch — a RESOLVED promise
+         means the network round-trip succeeded (machine reachable);
+         we cannot read the response and don't need to.
+         Error page: same-origin fetch of the failed route — here we
+         CAN read the status, so we require a real HTTP OK before
+         declaring recovery (the machine was never down, the app was). */
+      function probe() {
+        return new Promise(function (resolve) {
+          var ctrl = new AbortController();
+          var timer = setTimeout(function () { ctrl.abort(); resolve(false); }, 5000);
+          if (standalone) {
+            fetch(SERVER_URL + "?ping=" + Date.now(), { mode: "no-cors", cache: "no-store", signal: ctrl.signal })
+              .then(function () { clearTimeout(timer); resolve(true); })
+              .catch(function () { clearTimeout(timer); resolve(false); });
+          } else {
+            fetch(location.pathname + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
+              .then(function (res) { clearTimeout(timer); resolve(res.ok); })
+              .catch(function () { clearTimeout(timer); resolve(false); });
+          }
+        });
+      }
+
+      /* ---- Boot transition ----
+         When the server is detected, we do NOT jump immediately.
+         Instead: show a full-screen "loading the server" sequence —
+         green status, typed boot lines, progress bar — then navigate.
+         This makes the offline -> online moment feel intentional
+         rather than an abrupt page swap. ---- */
+      var recovering = false; // guards against the poll firing twice mid-transition
+      function bootTransition(target, isReload) {
+        if (recovering) return;
+        recovering = true;
+        var overlay = document.getElementById("bootup");
+        var term = document.getElementById("bootTerm");
+        var fill = document.getElementById("bootFill");
+        var go = function () { isReload ? location.reload() : location.replace(target); };
+
+        if (reduce) { overlay.classList.add("on"); setTimeout(go, 300); return; }
+
+        overlay.classList.add("on");
+        var lines = [
+          ["> server detected — establishing secure route ...", "ok"],
+          ["> handshaking with reverse proxy ................", "ok"],
+          ["> warming application ..........................", "ok"],
+          ["> loading hub — redirecting now", null],
+        ];
+        var i = 0;
+        (function next() {
+          if (i >= lines.length) { fill.style.width = "100%"; setTimeout(go, 450); return; }
+          var row = document.createElement("div");
+          row.textContent = lines[i][0] + (lines[i][1] ? " " : "");
+          if (lines[i][1]) {
+            var s = document.createElement("span");
+            s.className = "ok"; s.textContent = "ok";
+            row.append(s);
+          }
+          term.append(row);
+          i++;
+          fill.style.width = (i / lines.length) * 100 + "%";
+          setTimeout(next, 420);
+        })();
+      }
+
+      /* ---- Recovery loop: quiet background polling ----
+         Probes the server every POLL_MS; on first success, plays the
+         boot transition and navigates. No visible countdown. ---- */
+      setInterval(function () {
+        if (recovering) return;
+        probe().then(function (up) {
+          if (recovering || !up) return;
+          if (!standalone) { bootTransition(null, true); return; }   // error-page mode: transition, then reload the recovered route
+          var local = location.protocol === "file:";
+          var dest = (local ? HUB_LOCAL : HUB_REMOTE) + "#recovered";
+          bootTransition(dest, false);
+        });
+      }, POLL_MS);
+
+      /* ---- Speculative status: rotating playful lines while down ---- */
+      var specEl = document.getElementById("specLine");
+      var specs = [
+        "server status: probably rebooting with dignity",
+        "server status: fans spinning, thoughts loading",
+        "server status: negotiating with the power grid",
+        "server status: the queen bee is being fed",
+        "server status: untangling one (1) ethernet cable",
+        "server status: applying percussive maintenance",
+        "server status: reading its own logs for comfort",
+      ];
+      var si = 0;
+      specEl.textContent = specs[0];
+      setInterval(function () {
+        si = (si + 1) % specs.length;
+        specEl.textContent = specs[si];
+      }, 6000);
+
+      /* ---- While-you-wait mini game: guess 1-50 in the shell ---- */
+      (function () {
+        var out = document.getElementById("gameOut");
+        var input = document.getElementById("gameInput");
+        var row = document.getElementById("gameRow");
+        if (!out || !input) return;
+        var MAX = 100, secret, tries;
+        function line(txt, cls) {
+          var d = document.createElement("div");
+          if (cls) d.className = cls;
+          d.textContent = txt;
+          out.append(d);
+          while (out.children.length > 5) out.firstChild.remove();
+        }
+        function reset() { secret = Math.floor(Math.random() * MAX) + 1; tries = 0; out.innerHTML = ""; row.hidden = false; input.value = ""; }
+        input.addEventListener("keydown", function (e) {
+          if (e.key !== "Enter") return;
+          var n = parseInt(input.value, 10);
+          if (isNaN(n) || n < 1 || n > MAX) { line("> enter 1-" + MAX, "game__dim"); input.select(); return; }
+          tries++;
+          if (n === secret) {
+            line("> " + n + " — correct in " + tries + " tr" + (tries === 1 ? "y" : "ies") + "!", "game__ok");
+            row.hidden = true;
+            var again = document.createElement("button");
+            again.className = "game__again"; again.type = "button"; again.textContent = "play again";
+            again.addEventListener("click", reset);
+            out.append(again);
+          } else {
+            line("> " + n + " — too " + (n < secret ? "low" : "high"), "game__dim");
+            input.value = ""; input.focus();
+          }
+        });
+        reset();
+      })();
+
+      /* ---- Contact form -> opens the visitor's email app (mailto:)
+         Chosen deliberately: a form POST needs a backend, and on this
+         page the backend is exactly what's unavailable. ---- */
+      /* ---- Contact form: two modes ----
+         ENDPOINT mode (CONTACT_ENDPOINT set): POST name/email/message +
+           optional PDF/Word file to the form service -> it emails me.
+           The file row is revealed only in this mode.
+         MAILTO mode (default): open the visitor's email app pre-filled
+           with their name, EMAIL and message; the hint tells them to
+           attach the JD there, because mailto cannot carry files. ---- */
+      var fileRow = document.getElementById("fileRow");
+      var fileInput = document.getElementById("cFile");
+      var fileName = document.getElementById("fileName");
+      /* The upload row is always visible; sending the file requires
+         CONTACT_ENDPOINT (a form service) — see the CONFIG comment. */
+      fileInput.addEventListener("change", function () {
+        fileName.textContent = fileInput.files.length ? fileInput.files[0].name : "no file selected";
+      });
+
+      /* exposed for testability */
+      window.buildMailtoHref = function (name, email, msg) {
+        var subject = encodeURIComponent("[queenbee-core-srv] Server offline report — " + name);
+        var content = encodeURIComponent(
+          "From: " + name + " <" + email + ">\n\n" + msg + "\n\n— sent from the offline page"
+        );
+        return "mailto:" + ADMIN_EMAIL + "?subject=" + subject + "&body=" + content;
+      };
+
+      document.getElementById("contactForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var name = document.getElementById("cName").value.trim();
+        var email = document.getElementById("cEmail").value.trim();
+        var msg = document.getElementById("cMsg").value.trim();
+
+        if (!CONTACT_ENDPOINT) {
+          /* mailto cannot carry attachments: send the text, and if a file
+             was chosen, say so inline instead of silently dropping it */
+          if (fileInput.files.length) {
+            fileName.textContent = fileInput.files[0].name + " — needs the form service to send (see CONFIG)";
+          }
+          window.location.href = window.buildMailtoHref(name, email, msg);
+          return;
+        }
+        /* endpoint mode: multipart POST including the optional file */
+        var btn = document.getElementById("sendBtn");
+        btn.disabled = true; btn.textContent = "Sending…";
+        var fd = new FormData();
+        fd.append("name", name);
+        fd.append("email", email);
+        fd.append("message", msg);
+        if (fileInput.files.length) fd.append("attachment", fileInput.files[0]);
+        fetch(CONTACT_ENDPOINT, { method: "POST", body: fd })
+          .then(function (r) {
+            btn.textContent = r.ok ? "Sent ✔" : "Failed — try email";
+            if (!r.ok) btn.disabled = false;
+          })
+          .catch(function () { btn.textContent = "Failed — try email"; btn.disabled = false; });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Prajwal Kamble — self-hosted server hub. Projects, links, and the story of the machine serving this page." />
+  <meta name="hub-version" content="v3" />
+  <title>NightFury's Server · queenbee-core-srv</title>
+
+  <!-- Fonts: Space Grotesk (display) · Inter (body) · JetBrains Mono (terminal/labels) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body id="top" class="is-loading">
+
+  <!-- ══════════ BOOT LOADER ══════════ -->
+  <noscript><style>.loader{display:none!important}body.is-loading{overflow:auto!important}</style></noscript>
+  <div class="loader" id="loader" role="status" aria-label="Loading">
+    <div class="loader__box">
+      <div class="loader__rack" aria-hidden="true">
+        <div class="loader__unit"><i></i><i></i><span class="loader__tag">srv</span></div>
+        <div class="loader__unit"><i></i><i></i><span class="loader__tag">net</span></div>
+        <div class="loader__unit"><i></i><i></i><span class="loader__tag">dev</span></div>
+      </div>
+      <div class="loader__term" id="loaderTerm"></div>
+      <div class="loader__bar"><span id="loaderFill"></span></div>
+      <p class="loader__skip">click anywhere to skip</p>
+    </div>
+  </div>
+
+  <!-- Scroll progress bar -->
+  <div class="progress" id="progressBar" aria-hidden="true"></div>
+
+  <!-- Global cursor glow -->
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+  <!-- ══════════ NAV ══════════ -->
+  <header class="nav">
+    <div class="nav__inner">
+      <a href="#top" class="nav__brand">
+        <span class="nav__dot" aria-hidden="true"></span>
+        <span class="nav__host">queenbee-core-srv</span>
+      </a>
+
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#links">Links</a>
+        <a href="#projects">Projects</a>
+        <a href="#server">Server</a>
+        <a href="#about">About</a>
+        <a href="#playground">Playground</a>
+      </nav>
+
+      <div class="nav__actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle color theme">
+          <!-- sun -->
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/>
+          </svg>
+          <!-- moon -->
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>
+          </svg>
+        </button>
+        <button class="nav__burger" id="navBurger" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <!-- mobile menu -->
+    <nav class="nav__mobile" id="navMobile" aria-label="Mobile">
+      <a href="#links">Links</a>
+      <a href="#projects">Projects</a>
+      <a href="#server">Server</a>
+      <a href="#about">About</a>
+      <a href="#playground">Playground</a>
+    </nav>
+  </header>
+
+  <!-- Mobile bottom navigation (platform-adaptive) -->
+  <nav class="bottomnav" id="bottomNav" aria-label="Mobile sections">
+    <a href="#links">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+      <span>Links</span>
+    </a>
+    <a href="#projects">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Projects</span>
+    </a>
+    <a href="#server">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><line x1="7" y1="7.5" x2="7" y2="7.5"/><line x1="7" y1="16.5" x2="7" y2="16.5"/></svg>
+      <span>Server</span>
+    </a>
+    <a href="#about">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+      <span>About</span>
+    </a>
+    <a href="#playground">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M8 11v4M6 13h4"/><line x1="15.5" y1="12" x2="15.5" y2="12"/><line x1="18" y1="14" x2="18" y2="14"/></svg>
+      <span>Playground</span>
+    </a>
+  </nav>
+
+  <main>
+
+    <!-- ══════════ HERO ══════════ -->
+    <section class="hero">
+      <div class="hero__inner">
+        <p class="eyebrow reveal" data-reveal>// SELF-HOSTED · PUNE, IN</p>
+
+        <h1 class="hero__title">
+          <span class="reveal" data-reveal>Prajwal Kamble.</span>
+          <span class="hero__sub reveal" data-reveal data-delay="1">
+            <span id="typedRole">Full-Stack Developer</span><span class="caret" aria-hidden="true"></span>
+          </span>
+        </h1>
+
+        <p class="hero__lede reveal" data-reveal data-delay="2">
+          Software Engineer building across Java, Spring Boot, Next.js and AI
+          integration. This page — and everything linked from it — runs on a Linux
+          server I configured, secured, and operate myself.
+        </p>
+
+        <div class="hero__cta reveal" data-reveal data-delay="3">
+          <a class="btn btn--primary" href="#links">Explore links</a>
+          <a class="btn btn--ghost" href="#server">How this server works</a>
+        </div>
+
+        <!-- SIGNATURE: live request trace -->
+        <div class="trace reveal" data-reveal data-delay="4" aria-label="Request trace">
+          <div class="trace__bar">
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="trace__label">request-trace</span>
+          </div>
+          <div class="trace__body">
+            <div class="trace__line" id="traceLine"></div>
+            <div class="trace__chain">
+              <span class="trace__node" data-node>you</span>
+              <span class="trace__arrow" data-node>─▶</span>
+              <span class="trace__node" data-node>https</span>
+              <span class="trace__arrow" data-node>─▶</span>
+              <span class="trace__node" data-node>nginx</span>
+              <span class="trace__arrow" data-node>─▶</span>
+              <span class="trace__node" data-node>docker</span>
+              <span class="trace__arrow" data-node>─▶</span>
+              <span class="trace__node trace__node--host" data-node>queenbee-core-srv</span>
+              <span class="trace__status" data-node>200 OK</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating dev glyphs (animated, decorative) -->
+      <div class="hero__floats" aria-hidden="true">
+        <span class="float" style="--x: 78%; --y: 12%; --d: 12s;">&lt;/&gt;</span>
+        <span class="float" style="--x: 90%; --y: 42%; --d: 16s;">{ }</span>
+        <span class="float" style="--x: 68%; --y: 70%; --d: 14s;">curl</span>
+        <span class="float" style="--x: 84%; --y: 82%; --d: 18s;">$ sudo</span>
+        <span class="float" style="--x: 58%; --y: 26%; --d: 15s;">docker ps</span>
+        <span class="float" style="--x: 94%; --y: 8%;  --d: 13s;">git push</span>
+        <span class="float" style="--x: 50%; --y: 88%; --d: 17s;">ssh -v</span>
+      </div>
+
+      <div class="hero__grid" aria-hidden="true"></div>
+      <div class="hero__grid hero__grid--bright" aria-hidden="true"></div>
+
+      <!-- Hidden background — server & developer watermarks -->
+      <div class="bg-icons" aria-hidden="true">
+        <span class="bgicon" style="--x: 4%;  --y: 8%;  --d: 16s; --r: -8deg;">$</span>
+        <span class="bgicon" style="--x: 92%; --y: 6%;  --d: 19s; --r: 6deg;">&lt;/&gt;</span>
+        <span class="bgicon" style="--x: 12%; --y: 22%; --d: 21s; --r: 4deg;">~/prajwal</span>
+        <span class="bgicon" style="--x: 88%; --y: 24%; --d: 17s; --r: -5deg;">{ }</span>
+        <span class="bgicon" style="--x: 5%;  --y: 38%; --d: 23s; --r: 7deg;">Next.js</span>
+        <span class="bgicon" style="--x: 94%; --y: 40%; --d: 18s; --r: -6deg;">Spring Boot</span>
+        <span class="bgicon" style="--x: 9%;  --y: 54%; --d: 20s; --r: -4deg;">docker</span>
+        <span class="bgicon" style="--x: 90%; --y: 56%; --d: 22s; --r: 5deg;">nginx</span>
+        <span class="bgicon" style="--x: 3%;  --y: 70%; --d: 17s; --r: 6deg;">HTML</span>
+        <span class="bgicon" style="--x: 95%; --y: 72%; --d: 24s; --r: -7deg;">CSS</span>
+        <span class="bgicon" style="--x: 13%; --y: 86%; --d: 19s; --r: -3deg;">JS</span>
+        <span class="bgicon" style="--x: 87%; --y: 88%; --d: 21s; --r: 4deg;">Java</span>
+        <span class="bgicon" style="--x: 48%; --y: 4%;  --d: 25s; --r: 3deg;">https</span>
+        <span class="bgicon" style="--x: 46%; --y: 94%; --d: 18s; --r: -5deg;">git push</span>
+        <span class="bgicon" style="--x: 28%; --y: 12%; --d: 22s; --r: 5deg;">sudo</span>
+        <span class="bgicon" style="--x: 70%; --y: 14%; --d: 20s; --r: -4deg;">npm run build</span>
+        <span class="bgicon" style="--x: 26%; --y: 92%; --d: 23s; --r: 6deg;">systemctl</span>
+        <span class="bgicon" style="--x: 72%; --y: 90%; --d: 16s; --r: -6deg;">REST API</span>
+        <span class="bgicon" style="--x: 6%;  --y: 96%; --d: 24s; --r: 3deg;">SELECT *</span>
+        <span class="bgicon" style="--x: 93%; --y: 96%; --d: 19s; --r: -3deg;">ssh</span>
+      </div>
+    </section>
+
+    <!-- ══════════ LINKS ══════════ -->
+    <section class="section" id="links">
+      <div class="section__head reveal" data-reveal>
+        <p class="eyebrow">01 — CONNECT</p>
+        <h2>Every link, one address.</h2>
+        <p class="section__lede">All of my profiles, routed through this server.</p>
+      </div>
+
+      <div class="links-grid">
+        <!-- href="#" are placeholders — real URLs to be added -->
+        <a class="link-card reveal" data-reveal data-delay="1" href="https://queenbee-core-srv.emperor-adelie.ts.net/" target="_blank" rel="noopener">
+          <span class="link-card__index">/01</span>
+          <span class="link-card__name">My Portfolio</span>
+          <span class="link-card__hint">The full story, self-hosted</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal href="https://github.com/prajwalkamble" target="_blank" rel="noopener">
+          <span class="link-card__index">/02</span>
+          <span class="link-card__name">GitHub</span>
+          <span class="link-card__hint">Code, commits &amp; repos</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal data-delay="1" href="https://www.linkedin.com/in/prajwalkamble666" target="_blank" rel="noopener">
+          <span class="link-card__index">/03</span>
+          <span class="link-card__name">LinkedIn</span>
+          <span class="link-card__hint">Experience &amp; network</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal data-delay="2" href="https://dev.to/toothless" target="_blank" rel="noopener">
+          <span class="link-card__index">/04</span>
+          <span class="link-card__name">Dev.to</span>
+          <span class="link-card__hint">Dev community &amp; posts</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal href="https://nightfury666.medium.com/" target="_blank" rel="noopener">
+          <span class="link-card__index">/05</span>
+          <span class="link-card__name">Medium</span>
+          <span class="link-card__hint">Articles &amp; writing</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal data-delay="1" href="https://www.reddit.com/user/Night-Fury-666/" target="_blank" rel="noopener">
+          <span class="link-card__index">/06</span>
+          <span class="link-card__name">Reddit</span>
+          <span class="link-card__hint">Threads &amp; communities</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal data-delay="2" href="https://x.com/prajwalkamble66" target="_blank" rel="noopener">
+          <span class="link-card__index">/07</span>
+          <span class="link-card__name">X</span>
+          <span class="link-card__hint">Thoughts &amp; threads</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal href="https://www.instagram.com/thenameisprajwalofficial" target="_blank" rel="noopener">
+          <span class="link-card__index">/08</span>
+          <span class="link-card__name">Instagram</span>
+          <span class="link-card__hint">Off the terminal</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal data-delay="1" href="https://buymeacoffee.com/ppkamble" target="_blank" rel="noopener">
+          <span class="link-card__index">/09</span>
+          <span class="link-card__name">Buy Me a Coffee</span>
+          <span class="link-card__hint">Fuel the server</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-card reveal" data-reveal data-delay="2" href="https://ko-fi.com/ppkamble" target="_blank" rel="noopener">
+          <span class="link-card__index">/10</span>
+          <span class="link-card__name">Ko-fi</span>
+          <span class="link-card__hint">Support the work</span>
+          <span class="link-card__arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ══════════ PROJECTS ══════════ -->
+    <section class="section" id="projects">
+      <div class="section__head reveal" data-reveal>
+        <p class="eyebrow">02 — SELECTED WORKS</p>
+        <h2>Built end to end.</h2>
+        <p class="section__lede">Frontend, backend, data — and the machine underneath. Each project shipped and live.</p>
+      </div>
+
+      <div class="works">
+
+        <!-- ── Work 01: The Server ── -->
+        <article class="work reveal" data-reveal>
+          <div class="work__visual" aria-hidden="true">
+            <span class="work__num">01</span>
+            <span class="work__mono">QB</span>
+            <span class="work__badge">FEATURED · YOU ARE ON IT</span>
+          </div>
+          <div class="work__body">
+            <h3 class="work__title">queenbee-core-srv — Self-Hosted Server</h3>
+            <p class="work__desc">
+              A production-grade home server built on repurposed hardware and a hardened
+              Linux install — the machine serving this page right now. Every layer was
+              configured, secured, and debugged by hand: key-only SSH with root login
+              disabled, a default-deny ufw firewall, fail2ban, and zero ports opened on
+              the router. Ingress flows through a zero-trust Tailscale network with
+              public HTTPS via Let's Encrypt, into an Nginx reverse proxy that routes
+              to Docker containers built with multi-stage builds. Services are managed
+              by systemd with restart policies, so the whole stack self-heals after a
+              reboot or power cut.
+            </p>
+            <ul class="work__points">
+              <li>Zero-trust networking: CGNAT-proof public ingress without a single port-forward</li>
+              <li>Full request path owned end to end: HTTPS → Nginx → Docker → app</li>
+              <li>Debugged in production: SSH auth, port conflicts, proxy 502s, container lifecycle</li>
+            </ul>
+            <div class="work__tags">
+              <span class="tag">Linux</span><span class="tag">Nginx</span>
+              <span class="tag">Docker</span><span class="tag">Tailscale</span>
+              <span class="tag">systemd</span><span class="tag">Hardening</span>
+            </div>
+            <div class="work__stats">
+              <div class="stat"><span class="stat__value">0</span><span class="stat__label">open router ports</span></div>
+              <div class="stat"><span class="stat__value">₹0</span><span class="stat__label">monthly hosting</span></div>
+              <div class="stat"><span class="stat__value">4</span><span class="stat__label">stack layers</span></div>
+            </div>
+            <div class="work__actions">
+              <a class="btn btn--primary btn--sm" href="#server">How it works ↓</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- ── Work 02: Portfolio ── -->
+        <article class="work reveal" data-reveal>
+          <div class="work__visual" aria-hidden="true">
+            <span class="work__num">02</span>
+            <span class="work__mono">PK</span>
+            <span class="work__badge">SELF-HOSTED</span>
+          </div>
+          <div class="work__body">
+            <h3 class="work__title">Portfolio Website</h3>
+            <p class="work__desc">
+              Personal portfolio built with Next.js 14 and TypeScript — animated with
+              Framer Motion, monitored with Sentry, and deployed twice: on Vercel and
+              on this very server as a containerized app behind Nginx.
+            </p>
+            <ul class="work__points">
+              <li>Multi-stage Docker build producing a minimal standalone image</li>
+              <li>Server-side rendering with API routes and payment integration</li>
+              <li>Sentry error tracking and analytics wired into the build pipeline</li>
+            </ul>
+            <div class="work__tags">
+              <span class="tag">Next.js 14</span><span class="tag">TypeScript</span>
+              <span class="tag">Framer Motion</span><span class="tag">Docker</span>
+              <span class="tag">Nginx</span><span class="tag">Sentry</span>
+            </div>
+            <div class="work__stats">
+              <div class="stat"><span class="stat__value">2×</span><span class="stat__label">deploy targets</span></div>
+              <div class="stat"><span class="stat__value">SSR</span><span class="stat__label">+ API routes</span></div>
+              <div class="stat"><span class="stat__value">24/7</span><span class="stat__label">on this server</span></div>
+            </div>
+            <div class="work__actions">
+              <a class="btn btn--primary btn--sm" href="/portfolio">Live Demo ↗</a>
+              <a class="btn btn--ghost btn--sm" href="https://github.com/prajwalkamble/prajwalpk-website" target="_blank" rel="noopener">GitHub ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- ── Work 03: WHealth ── -->
+        <article class="work reveal" data-reveal>
+          <div class="work__visual" aria-hidden="true">
+            <span class="work__num">03</span>
+            <span class="work__mono">WH</span>
+          </div>
+          <div class="work__body">
+            <h3 class="work__title">WHealth Finance</h3>
+            <p class="work__desc">
+              A full personal-finance platform: a dashboard of account balances and
+              recent activity, expense tracking with categorization, budget planning,
+              investment portfolio management, financial goals, and detailed reports
+              &amp; analytics.
+            </p>
+            <ul class="work__points">
+              <li>Google and email authentication with a verified sign-up flow</li>
+              <li>Prisma-backed data layer with transactional email templates</li>
+              <li>Budget alerts, payment reminders and custom notifications</li>
+            </ul>
+            <div class="work__tags">
+              <span class="tag">Next.js</span><span class="tag">React</span>
+              <span class="tag">Prisma</span><span class="tag">PostgreSQL</span>
+              <span class="tag">Tailwind</span>
+            </div>
+            <div class="work__stats">
+              <div class="stat"><span class="stat__value">7</span><span class="stat__label">feature modules</span></div>
+              <div class="stat"><span class="stat__value">2</span><span class="stat__label">auth methods</span></div>
+              <div class="stat"><span class="stat__value">Live</span><span class="stat__label">in production</span></div>
+            </div>
+            <div class="work__actions">
+              <a class="btn btn--primary btn--sm" href="https://whealth-finance.vercel.app/" target="_blank" rel="noopener">Live Demo ↗</a>
+              <a class="btn btn--ghost btn--sm" href="https://github.com/prajwalkamble/Whealth" target="_blank" rel="noopener">GitHub ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- ── Work 04: Pattern Console ── -->
+        <article class="work reveal" data-reveal>
+          <div class="work__visual" aria-hidden="true">
+            <span class="work__num">04</span>
+            <span class="work__mono">PC</span>
+          </div>
+          <div class="work__body">
+            <h3 class="work__title">Pattern Console — DSA · SD · AI Prep</h3>
+            <p class="work__desc">
+              An offline-first study platform covering DSA pattern recognition, system
+              design, and a 7-phase AI-engineering curriculum — shipped as a single
+              static file with a Supabase serverless backend and a spaced-review
+              learning loop.
+            </p>
+            <ul class="work__points">
+              <li>In-browser code console with test runner and deterministic complexity estimation</li>
+              <li>Algorithm visualizer with 20+ modes, quizzes, streaks and a shared leaderboard</li>
+              <li>Offline-first localStorage sync to Postgres, secured with Row-Level Security</li>
+            </ul>
+            <div class="work__tags">
+              <span class="tag">Vanilla JS</span><span class="tag">Supabase</span>
+              <span class="tag">PostgreSQL</span><span class="tag">RLS</span>
+              <span class="tag">Offline-first</span>
+            </div>
+            <div class="work__stats">
+              <div class="stat"><span class="stat__value">22</span><span class="stat__label">DSA patterns</span></div>
+              <div class="stat"><span class="stat__value">31</span><span class="stat__label">AI lessons</span></div>
+              <div class="stat"><span class="stat__value">1</span><span class="stat__label">file, zero deps</span></div>
+            </div>
+            <div class="work__actions">
+              <a class="btn btn--primary btn--sm" href="https://prajwalkamble.github.io/DSA-SD-Prep/" target="_blank" rel="noopener">Live Demo ↗</a>
+              <a class="btn btn--ghost btn--sm" href="https://github.com/prajwalkamble/DSA-SD-Prep" target="_blank" rel="noopener">GitHub ↗</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ══════════ SERVER ══════════ -->
+    <section class="section section--alt" id="server">
+      <div class="section__head reveal" data-reveal>
+        <p class="eyebrow">03 — THE MACHINE</p>
+        <h2>About this server.</h2>
+        <p class="section__lede">No data centers, no rented cloud — every byte here is served from hardware I own, configured, and operate myself.</p>
+      </div>
+
+      <!-- Animated rack: one unit per real service -->
+      <div class="rack reveal" data-reveal aria-hidden="true">
+        <div class="rack__unit">
+          <span class="rack__leds"><i></i><i></i><i></i></span>
+          <span class="rack__name">nginx</span>
+          <span class="rack__port">reverse proxy</span>
+          <span class="rack__pulse"></span>
+        </div>
+        <div class="rack__unit">
+          <span class="rack__leds"><i></i><i></i><i></i></span>
+          <span class="rack__name">docker</span>
+          <span class="rack__port">app containers</span>
+          <span class="rack__pulse"></span>
+        </div>
+        <div class="rack__unit">
+          <span class="rack__leds"><i></i><i></i><i></i></span>
+          <span class="rack__name">tailscaled</span>
+          <span class="rack__port">secure ingress</span>
+          <span class="rack__pulse"></span>
+        </div>
+        <div class="rack__unit">
+          <span class="rack__leds"><i></i><i></i><i></i></span>
+          <span class="rack__name">sshd</span>
+          <span class="rack__port">key-only</span>
+          <span class="rack__pulse"></span>
+        </div>
+        <div class="rack__wire">
+          <span class="rack__packet"></span>
+          <span class="rack__packet rack__packet--2"></span>
+          <span class="rack__packet rack__packet--3"></span>
+        </div>
+      </div>
+
+      <!-- Live system log (animated feed) -->
+      <div class="syslog reveal" data-reveal aria-hidden="true">
+        <div class="game__bar">
+          <span class="trace__light"></span>
+          <span class="trace__light"></span>
+          <span class="trace__light"></span>
+          <span class="game__file">queenbee-core-srv: /var/log/live</span>
+        </div>
+        <div class="syslog__body" id="syslog"></div>
+      </div>
+
+      <div class="server-grid">
+        <div class="server-card reveal" data-reveal>
+          <span class="server-card__label">STACK</span>
+          <p>Hardened Linux → Tailscale zero-trust ingress → Nginx reverse proxy → Docker containers.</p>
+        </div>
+        <div class="server-card reveal" data-reveal data-delay="1">
+          <span class="server-card__label">SECURITY</span>
+          <p>Key-only SSH · root login disabled · ufw firewall · fail2ban · zero open router ports.</p>
+        </div>
+        <div class="server-card reveal" data-reveal data-delay="2">
+          <span class="server-card__label">DELIVERY</span>
+          <p>HTTPS via Let's Encrypt, multi-stage Docker builds, services managed by systemd — self-healing on reboot.</p>
+        </div>
+        <div class="server-card reveal" data-reveal data-delay="3">
+          <span class="server-card__label">COST</span>
+          <p>₹0/month hosting. Repurposed hardware, open-source software, and an engineer who reads the logs.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ ABOUT ══════════ -->
+    <section class="section" id="about">
+      <div class="about reveal" data-reveal>
+        <div class="about__text">
+          <p class="eyebrow">04 — OPERATOR</p>
+          <h2>About the developer.</h2>
+          <p>
+            I'm Prajwal — a full-stack developer working across Java, Spring Boot,
+            React and Next.js, with a growing focus on AI integration and the
+            infrastructure that ships it. I like understanding systems all the way
+            down: from the component on the screen to the port it's served from.
+          </p>
+          <p>
+            This hub is both a directory and a demonstration — every request that
+            reaches it crosses a network, a proxy, and a container that I configured
+            and debugged myself.
+          </p>
+        </div>
+        <div class="about__panel" aria-hidden="true">
+          <pre class="about__term"><code>$ whoami
+prajwal — builder of this box
+$ uptime
+learning, continuously
+$ _</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ PLAYGROUND ══════════ -->
+    <section class="section" id="playground">
+      <div class="section__head reveal" data-reveal>
+        <p class="eyebrow">05 — PLAYGROUND</p>
+        <h2>Take a break. Beat the machine.</h2>
+        <p class="section__lede">Mini games in pure vanilla JS — no libraries, no build, running right on this server.</p>
+      </div>
+
+      <!-- Game selector tabs -->
+      <div class="games-tabs reveal" data-reveal role="tablist" aria-label="Choose a game">
+        <button class="games-tab is-active" data-game="guess" role="tab" aria-selected="true">Guess Game</button>
+        <button class="games-tab" data-game="ttt" role="tab" aria-selected="false">Tic-Tac-Toe</button>
+        <button class="games-tab" data-game="coin" role="tab" aria-selected="false">Coin Flip</button>
+        <button class="games-tab" data-game="rps" role="tab" aria-selected="false">RPS</button>
+      </div>
+
+      <div class="games-stage reveal" data-reveal>
+
+        <!-- Panel: Guess Game (terminal) -->
+        <div class="game game-panel is-active" data-panel="guess">
+          <div class="game__bar">
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="game__file">toothless@queenbee-core-srv: guess-game.sh</span>
+          </div>
+          <div class="game__body game__body--term">
+            <p class="term__prompt"><span class="term__user">toothless@queenbee-core-srv</span>:<span class="term__path">~</span>$ ./guess-game.sh</p>
+            <div class="term__out" id="guessOut" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <!-- Panel: Tic-Tac-Toe (board, not terminal) -->
+        <div class="game game-panel" data-panel="ttt">
+          <div class="game__bar">
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="game__file">toothless@queenbee-core-srv: tic-tac-toe</span>
+          </div>
+          <div class="game__body game__body--center">
+            <p class="game__hint">You are X. The server is O.</p>
+            <div class="ttt" id="ttt" role="group" aria-label="Tic tac toe board">
+              <button class="ttt__cell" aria-label="cell 1"></button>
+              <button class="ttt__cell" aria-label="cell 2"></button>
+              <button class="ttt__cell" aria-label="cell 3"></button>
+              <button class="ttt__cell" aria-label="cell 4"></button>
+              <button class="ttt__cell" aria-label="cell 5"></button>
+              <button class="ttt__cell" aria-label="cell 6"></button>
+              <button class="ttt__cell" aria-label="cell 7"></button>
+              <button class="ttt__cell" aria-label="cell 8"></button>
+              <button class="ttt__cell" aria-label="cell 9"></button>
+            </div>
+            <p class="game__msg" id="tttMsg">Your move.</p>
+            <p class="game__score" id="tttScore">W 0 · L 0 · D 0</p>
+            <button class="game__reset" id="tttReset">↺ new game</button>
+          </div>
+        </div>
+
+        <!-- Panel: Coin Flip (terminal) -->
+        <div class="game game-panel" data-panel="coin">
+          <div class="game__bar">
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="game__file">toothless@queenbee-core-srv: coin-flip.sh</span>
+          </div>
+          <div class="game__body game__body--term">
+            <p class="term__prompt"><span class="term__user">toothless@queenbee-core-srv</span>:<span class="term__path">~</span>$ ./coin-flip.sh</p>
+            <div class="term__out" id="coinOut" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <!-- Panel: Rock Paper Scissors (terminal) -->
+        <div class="game game-panel" data-panel="rps">
+          <div class="game__bar">
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="trace__light"></span>
+            <span class="game__file">toothless@queenbee-core-srv: rps.sh</span>
+          </div>
+          <div class="game__body game__body--term">
+            <p class="term__prompt"><span class="term__user">toothless@queenbee-core-srv</span>:<span class="term__path">~</span>$ ./rps.sh</p>
+            <div class="term__out" id="rpsOut" aria-live="polite"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <p class="footer__host"><span class="nav__dot" aria-hidden="true"></span> served by queenbee-core-srv</p>
+      <p class="footer__note">Designed, Developed &amp; self-hosted by <a class="footer__name" href="https://queenbee-core-srv.emperor-adelie.ts.net/" target="_blank" rel="noopener">Prajwal Kamble</a> · <span id="year"></span></p>
+      <a class="footer__top" href="#top">Back to top ↑</a>
+    </div>
+  </footer>
+
+  <!-- ── Reconnection acknowledgment (inline, runs BEFORE script.js) ──
+       If we arrived here from the offline page's recovery transition
+       (URL carries #recovered), inject a green first line into the boot
+       loader's terminal so the loader tells the story: link restored,
+       then the normal bash boot continues beneath it. The flag is then
+       stripped from the URL so refreshes/bookmarks look clean. -->
+  <script>
+    (function () {
+      if (location.hash !== "#recovered") return;
+      var term = document.getElementById("loaderTerm");
+      if (term) {
+        var line = document.createElement("div");
+        var tag = document.createElement("span");
+        tag.className = "term__ok";
+        tag.textContent = "link re-established — server online. resuming boot…";
+        line.append(tag);
+        term.append(line);
+      }
+      /* remove #recovered without adding a history entry */
+      history.replaceState(null, "", location.pathname + location.search);
+    })();
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
