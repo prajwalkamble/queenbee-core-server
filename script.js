@@ -33,7 +33,12 @@
   (function () {
     /* ---- CONFIG — adjust these if your URLs ever change ---- */
     var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server/"; // probe target: a STATIC path, so it answers even if only the app container is down (machine reachability, not app health)
-    var OFFLINE_PAGE = "docs/index.html"; // offline page = docs/index.html (the GitHub Pages entry file)
+    /* ABSOLUTE URL, not a relative path: this hub is served from several
+       places (local disk, the server, a clone), and the status page lives
+       on GitHub Pages — independent infrastructure that stays up when the
+       server does not. A relative path would resolve against whichever
+       origin the hub happens to be on and 404. */
+    var OFFLINE_PAGE = "https://prajwalkamble.github.io/queenbee-core-server/";
     var PROBE_TIMEOUT = 5000;           // ms to wait before declaring "unreachable"
     var RECHECK_MS    = 30000;          // background re-check interval while hub is open
 
@@ -43,7 +48,8 @@
        Served from ts.net -> skip (see header comment). */
     var host = location.hostname;
     var standalone = location.protocol === "file:" || (host && host.indexOf(".ts.net") === -1);
-    if (!standalone) return;
+    if (!standalone) return;                                    // served by the server itself
+    if (location.href.indexOf(OFFLINE_PAGE) === 0) return;      // already on the status page
 
     /* ---- probe(): resolves true if the server answered, false if not ----
        Uses fetch with mode:"no-cors": we don't need to READ the response

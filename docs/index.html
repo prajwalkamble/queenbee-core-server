@@ -890,7 +890,7 @@
         .then(function (r) { return r.json().catch(function () { return { success: r.ok }; }); })
         .then(function (data) {
           if (!data.success) { throw new Error("rejected"); }
-          toast("Message sent successfully — I'll reply to " + email, false);
+          toast("Message sent successfully", false);
           document.getElementById("contactForm").reset();
           btn.textContent = "Sent ✔";
           setTimeout(function () { btn.disabled = false; btn.textContent = "Send message →"; }, 4000);
