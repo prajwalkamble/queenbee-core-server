@@ -1,0 +1,17 @@
+# real scripts hold host details — only the .example versions are pushed
+deploy.sh
+start-server.sh
+
+# local contact config (Web3Forms key)
+docs/config.js
+
+# keys and secrets — never commit
+*.pem
+*.key
+id_ed25519
+id_rsa
+.env
+
+# OS / editor noise
+.DS_Store
+*.swp
