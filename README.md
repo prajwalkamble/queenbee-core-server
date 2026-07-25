@@ -4,7 +4,7 @@
 
 **A self-hosted Linux server, the hub page it serves, and the failover that keeps its public URL useful when the machine behind it isn't.**
 
-### [→ Open the server](https://prajwalkamble.github.io/queenbee-core-server/)
+## [Visit server](https://prajwalkamble.github.io/queenbee-core-server/)
 
 [About the build](https://prajwalkamble.github.io/queenbee-core-server/about-server.html)
 
