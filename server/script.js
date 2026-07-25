@@ -32,7 +32,7 @@
      ══════════════════════════════════════════════════════════════════ */
   (function () {
     /* ---- CONFIG — adjust these if your URLs ever change ---- */
-    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/healthz"; // probe target: the front node's health endpoint, 200 only while THIS machine answers (see front-node/nginx/queenbee-front.conf)
+    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server";
     /* ABSOLUTE URL, not a relative path: this hub is served from several
        places (local disk, the server, a clone), and the status page lives
        on GitHub Pages — independent infrastructure that stays up when the
