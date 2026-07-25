@@ -32,11 +32,10 @@
      ══════════════════════════════════════════════════════════════════ */
   (function () {
     /* ---- CONFIG — adjust these if your URLs ever change ---- */
-<<<<<<< HEAD
-    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server";
-=======
-    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server/"; // probe target: the hub itself. It answers only when the server is up, so it IS the health check.
->>>>>>> 5a0e947 (Fix offline fallback and speed up outage detection)
+// <<<<<<< HEAD
+    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server/";
+// =======
+    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server/"; // probe target: the hub itself. It answers only when the server is up, so it IS the health check. 
     /* ABSOLUTE URL, not a relative path: this hub is served from several
        places (local disk, the server, a clone), and the status page lives
        on GitHub Pages — independent infrastructure that stays up when the
