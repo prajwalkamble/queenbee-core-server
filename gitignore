@@ -1,0 +1,45 @@
+# ═══════════════════════════════════════════════════════════════
+# nightfury-server
+#
+# Rule of thumb for this repo: every *.example.* file is COMMITTED
+# (it documents the shape), every real one next to it is IGNORED.
+# ═══════════════════════════════════════════════════════════════
+
+# ── Local deploy scripts ───────────────────────────────────────
+# Your real paths, hosts, and any keys live in these. The .example
+# twins are committed, so a fresh clone starts from those.
+# Leading slash = root only, so front-node/install.sh stays tracked.
+/deploy.sh
+/start-server.sh
+
+# ── docs/config.js is deliberately NOT ignored ─────────────────
+# GitHub Pages serves docs/. Ignore a file there and it never
+# reaches GitHub, so the live offline page 404s on it and loses
+# its probe target and contact form. It is public either way, so
+# keep only public values in it — never a real secret.
+
+# ── Secrets (none of these belong in any folder here) ──────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+credentials.json
+
+# ── OS + editor cruft ──────────────────────────────────────────
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Runtime noise ──────────────────────────────────────────────
+*.log
+node_modules/
+.cache/

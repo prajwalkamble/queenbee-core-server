@@ -32,13 +32,13 @@
      ══════════════════════════════════════════════════════════════════ */
   (function () {
     /* ---- CONFIG — adjust these if your URLs ever change ---- */
-    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server/"; // probe target: a STATIC path, so it answers even if only the app container is down (machine reachability, not app health)
+    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/healthz"; // probe target: the front node's health endpoint, 200 only while THIS machine answers (see front-node/nginx/queenbee-front.conf)
     /* ABSOLUTE URL, not a relative path: this hub is served from several
        places (local disk, the server, a clone), and the status page lives
        on GitHub Pages — independent infrastructure that stays up when the
        server does not. A relative path would resolve against whichever
        origin the hub happens to be on and 404. */
-    var OFFLINE_PAGE = "https://prajwalkamble.github.io/queenbee-core-server/";
+    var OFFLINE_PAGE = "https://prajwalkamble.github.io/nightfury-server/";
     var PROBE_TIMEOUT = 5000;           // ms to wait before declaring "unreachable"
     var RECHECK_MS    = 30000;          // background re-check interval while hub is open
 
@@ -62,8 +62,8 @@
       return new Promise(function (resolve) {
         var ctrl = new AbortController();
         var timer = setTimeout(function () { ctrl.abort(); resolve(false); }, PROBE_TIMEOUT);
-        fetch(SERVER_URL + "?ping=" + Date.now(), { mode: "no-cors", cache: "no-store", signal: ctrl.signal })
-          .then(function () { clearTimeout(timer); resolve(true); })
+        fetch(SERVER_URL + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
+          .then(function (res) { clearTimeout(timer); resolve(res.ok); })
           .catch(function () { clearTimeout(timer); resolve(false); });
       });
     }

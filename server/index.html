@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body id="top" class="is-loading">
 
@@ -630,32 +630,6 @@ $ _</code></pre>
     </div>
   </footer>
 
-<<<<<<< HEAD
-  <!-- ── Reconnection acknowledgment (inline, runs BEFORE script.js) ──
-       If we arrived here from the offline page's recovery transition
-       (URL carries #live), inject a green first line into the boot
-       loader's terminal so the loader tells the story: link restored,
-       then the normal bash boot continues beneath it. The flag is then
-       stripped from the URL so refreshes/bookmarks look clean. -->
-  <script>
-    (function () {
-      if (location.hash !== "#live") return;
-      var term = document.getElementById("loaderTerm");
-      if (term) {
-        var line = document.createElement("div");
-        var tag = document.createElement("span");
-        tag.className = "term__ok";
-        tag.textContent = "link re-established — server online. resuming boot…";
-        line.append(tag);
-        term.append(line);
-      }
-      /* remove #live without adding a history entry */
-      history.replaceState(null, "", location.pathname + location.search);
-    })();
-  </script>
   <script src="script.js"></script>
-=======
-  <script src="script.js?v=8"></script>
->>>>>>> e22d379 (Offline-first status page, themed UI, and sanitized deploy scripts)
 </body>
 </html>

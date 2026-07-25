@@ -28,7 +28,11 @@
     body {
       font-family: "Inter", sans-serif;
       background: var(--bg); color: var(--text);
+      /* dvh, not vh: mobile Safari/Chrome count the collapsing toolbar as part
+         of 100vh, so a "full height" page scrolls by ~60-100px on first paint.
+         vh first as the fallback for older browsers. */
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex; flex-direction: column;
       overflow-x: hidden;
       transition: background .35s var(--ease), color .35s var(--ease);
@@ -369,7 +373,7 @@
       /* tighter chrome so content gets the width */
       .top { padding: 0.8rem 1rem; }
       .stage { padding: 1.4rem 1rem; }
-      .bottom { padding: 1rem; flex-direction: column; align-items: flex-start; gap: 0.45rem; }
+      .bottom { padding: 1rem calc(1rem + env(safe-area-inset-right)) calc(1rem + env(safe-area-inset-bottom)) calc(1rem + env(safe-area-inset-left)); flex-direction: column; align-items: flex-start; gap: 0.45rem; }
       .bottom .yr { margin-left: 0; }
 
       /* status terminal: smaller mono so lines wrap less */
@@ -398,6 +402,14 @@
 
       /* background glyphs: keep only a couple so the page stays clean */
       .glyphs span:nth-child(n+3) { display: none; }
+    }
+
+    /* ── Tablets (561-1024px) ──
+       .wrap is already width: min(560px, 100%) and .stage centres it, so the
+       column itself needs nothing here. Only the surrounding padding is worth
+       opening up so the card isn't hard against the edges in portrait. */
+    @media (min-width: 561px) and (max-width: 1024px) {
+      .stage { padding: 2rem 2.5rem; }
     }
 
     /* ── iOS zoom guard ──
@@ -637,7 +649,15 @@
       var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       /* ---- CONFIG — the only lines you may ever need to edit ---- */
-      var SERVER_URL     = "https://queenbee-core-srv.emperor-adelie.ts.net/server/"; // reachability probe target (static path)
+      /* Reachability probe target.
+         MUST be /healthz, never /server/. The front node is always up, so
+         /server/ always answers something — probing it would report "up"
+         even while the laptop is off, this page would forward to the hub,
+         the front node would bounce it straight back here, and the two
+         would ping-pong forever. /healthz returns 200 ONLY while the
+         laptop itself answers, and sends CORS headers so we can read the
+         status code instead of guessing from an opaque response. */
+      var SERVER_URL     = "https://queenbee-core-srv.emperor-adelie.ts.net/healthz";
       /* Where to send the viewer once the server is back (standalone mode):
          · opened from LOCAL DISK  -> the hub sits one folder up (../index.html)
          · opened on GITHUB PAGES  -> there is no hub next to us; go to the
@@ -647,18 +667,8 @@
       /* About page destinations:
          · standalone: docs/index.html is our SIBLING in this folder        */
       var ABOUT_LOCAL    = "about-server.html";  // the About page is our sibling in docs/
-      var ABOUT_FALLBACK = "https://prajwalkamble.github.io/queenbee-core-server/about-server.html"; // error-page mode: absolute Pages URL (always up)
+      var ABOUT_FALLBACK = "https://prajwalkamble.github.io/nightfury-server/about-server.html"; // error-page mode: absolute Pages URL (always up)
       var ADMIN_EMAIL    = "prajwalkamble342000@gmail.com";              // ← REPLACE with your real address before deploying
-<<<<<<< HEAD
-      /* Optional form backend (e.g. a Formspree/Web3Forms-style endpoint).
-         Leave EMPTY -> the form falls back to mailto: (opens the visitor's
-         email app; they attach files THERE, since mailto can't carry them).
-         Set a URL -> the form POSTs name/email/message + the attached file
-         to that service, which emails it to you — works while the server
-         is down because the service is independent infrastructure. */
-      var CONTACT_ENDPOINT = "";
-=======
->>>>>>> e22d379 (Offline-first status page, themed UI, and sanitized deploy scripts)
       var POLL_MS        = 8000;                                  // how often to re-check the server
 
       /* ---- Mode detection: this page is served as an Nginx error_page
@@ -700,8 +710,11 @@
           var ctrl = new AbortController();
           var timer = setTimeout(function () { ctrl.abort(); resolve(false); }, timeoutMs || 5000);
           if (standalone) {
-            fetch(SERVER_URL + "?ping=" + Date.now(), { mode: "no-cors", cache: "no-store", signal: ctrl.signal })
-              .then(function () { clearTimeout(timer); resolve(true); })
+            /* Real CORS read — /healthz answers 200 only while the laptop
+               is up, 503 while the front node is covering for it. An
+               opaque no-cors probe cannot tell those apart. */
+            fetch(SERVER_URL + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
+              .then(function (res) { clearTimeout(timer); resolve(res.ok); })
               .catch(function () { clearTimeout(timer); resolve(false); });
           } else {
             fetch(location.pathname + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
@@ -717,6 +730,27 @@
          green status, typed boot lines, progress bar — then navigate.
          This makes the offline -> online moment feel intentional
          rather than an abrupt page swap. ---- */
+      /* ---- Bounce guard ----
+         Belt and braces against a redirect loop. If /healthz is ever
+         misconfigured and starts answering 200 while the laptop is down,
+         this page would forward to the hub, get bounced back, forward
+         again... Three round trips inside 15s and we stop forwarding and
+         let the viewer read the offline page in peace. */
+      var BOUNCE_KEY = "qb-bounce";
+      function bounceState() {
+        try { return JSON.parse(sessionStorage.getItem(BOUNCE_KEY)) || { n: 0, t: 0 }; }
+        catch (e) { return { n: 0, t: 0 }; }
+      }
+      function noteBounce() {
+        var b = bounceState(), now = Date.now();
+        b = (now - b.t < 15000) ? { n: b.n + 1, t: now } : { n: 1, t: now };
+        try { sessionStorage.setItem(BOUNCE_KEY, JSON.stringify(b)); } catch (e) {}
+      }
+      function loopSuspected() {
+        var b = bounceState();
+        return b.n >= 3 && (Date.now() - b.t) < 15000;
+      }
+
       var recovering = false; // guards against the poll firing twice mid-transition
       function bootTransition(target, isReload) {
         if (recovering) return;
@@ -758,8 +792,10 @@
 
       /* ---- goHome(): what to do once the server answers ---- */
       function goHome() {
+        if (loopSuspected()) return;                               // bounce guard tripped — stay put
         if (!standalone) { bootTransition(null, true); return; }   // error-page mode: transition, then reload the recovered route
         var local = location.protocol === "file:";
+        noteBounce();
         bootTransition(local ? HUB_LOCAL : HUB_REMOTE, false);     // clean URL, no hash
       }
 
@@ -778,6 +814,12 @@
         overlay.classList.add("on", "checking");
         statusEl.textContent = "CHECKING SERVER STATUS";
         termEl.textContent = "> probing queenbee-core-srv …";
+
+        if (loopSuspected()) {
+          overlay.classList.remove("on", "checking");
+          termEl.textContent = "";
+          return;                                                  // don't even probe; we just came back from a bounce
+        }
 
         probe(2500).then(function (up) {
           if (up) { goHome(); return; }

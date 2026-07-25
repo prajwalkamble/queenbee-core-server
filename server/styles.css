@@ -1304,3 +1304,39 @@ main h2.words-in .w { opacity: 1; transform: none; }
   background: var(--accent-soft);
   box-shadow: none;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABLETS (761–1024px)
+   ---------------------------------------------------------------------------
+   The gap this fills: every breakpoint below stops at 760px and the next one
+   starts at 1440px, so an iPad in portrait (768–1024) was rendering the full
+   desktop layout — 4-across rack cells at ~174px, a two-column About at
+   ~390/310. The desktop nav is correct at this size, so it stays; only the
+   grids that were sized for 1080px come down a notch.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .about { grid-template-columns: 1fr; gap: 2rem; }
+  .about__text p:not(.eyebrow) { max-width: none; }
+}
+
+@media (max-width: 900px) {
+  .rack { grid-template-columns: repeat(2, 1fr); }
+  .work { grid-template-columns: 1fr 1.3fr; }   /* give the copy more room */
+  .section { padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOUCH INPUT
+   ---------------------------------------------------------------------------
+   17 :hover rules in this file. On a touchscreen a tap latches :hover and the
+   card stays lifted until you tap elsewhere, which reads as a rendering bug.
+   Neutralise the transform-based ones wherever hover isn't real; colour and
+   border hovers are harmless and stay.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (hover: none) {
+  .work:hover,
+  .link-card:hover,
+  .btn:hover { transform: none; }
+  .work__visual { transform: none !important; }   /* JS tilt never applies on touch anyway */
+}

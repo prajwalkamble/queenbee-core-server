@@ -23,7 +23,7 @@
        screen, even when a short section leaves the page under-filled */
     body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;
       transition:background .35s var(--ease),color .35s var(--ease);
-      min-height:100vh;display:flex;flex-direction:column}
+      min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
     main{flex:1 0 auto}
     a{color:inherit;text-decoration:none}
     .mono{font-family:"JetBrains Mono",monospace}
@@ -229,7 +229,16 @@
     .foot a:hover{text-decoration:underline;text-underline-offset:3px}
     .foot .right{margin-left:auto}
 
+    /* Tablets + large phones: this page only had a 480px breakpoint, so
+       481-860px kept desktop gutters on a column that was already narrower
+       than its container. Tighten the gutters and make the tabs a real
+       touch target (44px is the Apple/Android minimum). */
+    @media (max-width:900px){
+      .head,.tabs,main,.foot{padding-left:1.15rem;padding-right:1.15rem}
+      .tabs a{min-height:44px;display:inline-flex;align-items:center}
+    }
     @media (max-width:480px){ .head,.tabs,main,.foot{padding-left:1rem;padding-right:1rem} .okc{margin-left:0;width:100%} }
+    @media (max-width:480px){ .foot{padding-bottom:calc(1.4rem + env(safe-area-inset-bottom))} }
     @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}
       .rk__leds i,.rk__bars b,.amb-log__track,.layer::after,.cur{animation:none!important}}
   </style>
@@ -455,7 +464,10 @@
          A no-cors fetch cannot read the response, but a RESOLVED request
          proves the machine answered — which is all "is it up?" needs. */
       (function serverStatus() {
-        var SERVER_URL = "https://queenbee-core-srv.emperor-adelie.ts.net/server/";
+        /* /healthz, not /server/ — the front node always answers /server/,
+           so probing it would paint the dot green even while the laptop
+           is off. /healthz is 200 only when the laptop itself replies. */
+        var SERVER_URL = "https://queenbee-core-srv.emperor-adelie.ts.net/healthz";
         var dot = document.querySelector(".dot");
         var word = document.getElementById("statusWord");
 
@@ -463,8 +475,8 @@
           return new Promise(function (resolve) {
             var ctrl = new AbortController();
             var timer = setTimeout(function () { ctrl.abort(); resolve(false); }, 5000);
-            fetch(SERVER_URL + "?ping=" + Date.now(), { mode: "no-cors", cache: "no-store", signal: ctrl.signal })
-              .then(function () { clearTimeout(timer); resolve(true); })
+            fetch(SERVER_URL + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
+              .then(function (res) { clearTimeout(timer); resolve(res.ok); })
               .catch(function () { clearTimeout(timer); resolve(false); });
           });
         }
