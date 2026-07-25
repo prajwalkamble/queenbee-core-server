@@ -32,39 +32,97 @@
      ══════════════════════════════════════════════════════════════════ */
   (function () {
     /* ---- CONFIG — adjust these if your URLs ever change ---- */
-    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/healthz"; // probe target: the front node's health endpoint, 200 only while THIS machine answers (see front-node/nginx/queenbee-front.conf)
+    var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server/"; // probe target: the hub itself. It answers only when the server is up, so it IS the health check.
     /* ABSOLUTE URL, not a relative path: this hub is served from several
        places (local disk, the server, a clone), and the status page lives
        on GitHub Pages — independent infrastructure that stays up when the
        server does not. A relative path would resolve against whichever
        origin the hub happens to be on and 404. */
-    var OFFLINE_PAGE = "https://prajwalkamble.github.io/nightfury-server/";
-    var PROBE_TIMEOUT = 5000;           // ms to wait before declaring "unreachable"
-    var RECHECK_MS    = 30000;          // background re-check interval while hub is open
+    var OFFLINE_PAGE = "https://prajwalkamble.github.io/queenbee-core-server/";
+    var PROBE_TIMEOUT = 3000;           // ms before a probe is called unreachable
+    var RECHECK_MS    = 5000;           // background re-check interval while the hub is open
+    var CONFIRM_DELAY = 1000;           // pause before the confirming second probe
+    /* Worst case to detection: 5 + 3 + 1 + 3 = 12s, typically 4-6s. A dead
+       Tailscale host usually HANGS rather than refusing, so probes tend to
+       burn their full timeout — which is why these numbers matter more here
+       than they would against an ordinary web server. */
 
     /* ---- Guard only in "standalone" contexts ----
        file:  -> opened from local disk
        github.io / localhost / anything not ts.net -> hosted elsewhere.
        Served from ts.net -> skip (see header comment). */
     var host = location.hostname;
-    var standalone = location.protocol === "file:" || (host && host.indexOf(".ts.net") === -1);
-    if (!standalone) return;                                    // served by the server itself
+
+    /* Escape hatch for local work: open index.html?dev and the guard stands
+       down for that tab. Otherwise editing the hub while the server is off
+       throws you to the offline page before you can see anything. */
+    if (/[?&]dev\b/.test(location.search)) return;
+
+    /* ---- Where are we, and how do we ask? ----
+       Served from ts.net  -> same origin, so the status code is readable and
+                              a 502 from a dead app is caught as well as a
+                              dead machine.
+       Anywhere else       -> cross-origin, so an opaque no-cors probe is all
+                              we get: resolved means it answered, rejected
+                              means it did not. */
+    var sameOrigin = !!(host && host.indexOf(".ts.net") !== -1);
     if (location.href.indexOf(OFFLINE_PAGE) === 0) return;      // already on the status page
 
-    /* ---- probe(): resolves true if the server answered, false if not ----
-       Uses fetch with mode:"no-cors": we don't need to READ the response
-       (cross-origin rules forbid that without CORS headers) — we only need
-       to know whether the network round-trip SUCCEEDED. A resolved fetch
-       means "machine reachable"; a rejected one means "down/unreachable".
-       AbortController enforces the timeout so a black-holed request can't
-       hang the check forever. Cache-busting query defeats any caching. */
     function probe() {
       return new Promise(function (resolve) {
-        var ctrl = new AbortController();
+        var ctrl  = new AbortController();
         var timer = setTimeout(function () { ctrl.abort(); resolve(false); }, PROBE_TIMEOUT);
-        fetch(SERVER_URL + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
-          .then(function (res) { clearTimeout(timer); resolve(res.ok); })
-          .catch(function () { clearTimeout(timer); resolve(false); });
+        var url   = (sameOrigin ? location.pathname : SERVER_URL) + "?ping=" + Date.now();
+        var opts  = sameOrigin
+          ? { cache: "no-store", signal: ctrl.signal }
+          : { mode: "no-cors", cache: "no-store", signal: ctrl.signal };
+        fetch(url, opts)
+          .then(function (res) { clearTimeout(timer); resolve(sameOrigin ? res.ok : true); })
+          .catch(function ()   { clearTimeout(timer); resolve(false); });
+      });
+    }
+
+    /* ---- Say something while we confirm ----
+       The delay itself was never the real complaint: the page looked healthy
+       and said nothing for several seconds, so the viewer reloaded. Surface
+       the first failed probe immediately, and withdraw it if the confirming
+       probe succeeds. */
+    var notice = null;
+    function showNotice() {
+      if (notice || !document.body) return;
+      notice = document.createElement("div");
+      notice.textContent = "Connection lost — checking\u2026";
+      notice.setAttribute("role", "status");
+      notice.style.cssText = [
+        "position:fixed", "left:50%", "top:1rem", "transform:translateX(-50%)",
+        "z-index:9999", "padding:.55rem 1.1rem", "border-radius:999px",
+        "font:500 13px/1 'JetBrains Mono',ui-monospace,monospace",
+        "background:rgba(18,18,22,.94)", "color:#ffb454",
+        "border:1px solid rgba(255,180,84,.35)",
+        "box-shadow:0 6px 24px rgba(0,0,0,.45)",
+        "pointer-events:none"
+      ].join(";");
+      document.body.appendChild(notice);
+    }
+    function hideNotice() {
+      if (!notice) return;
+      notice.parentNode && notice.parentNode.removeChild(notice);
+      notice = null;
+    }
+
+    /* One failed probe is not proof of an outage — a wifi hiccup looks
+       identical. Confirm with a second probe before throwing the viewer
+       to another origin. */
+    function confirmedDown() {
+      return probe().then(function (up) {
+        if (up) { hideNotice(); return false; }
+        showNotice();                                           // first failure: tell the viewer
+        return new Promise(function (r) { setTimeout(r, CONFIRM_DELAY); })
+          .then(probe)
+          .then(function (upAgain) {
+            if (upAgain) hideNotice();                          // false alarm, carry on
+            return !upAgain;
+          });
       });
     }
 
@@ -75,16 +133,31 @@
       location.replace(OFFLINE_PAGE);
     }
 
-    /* ---- Initial check: runs immediately, in parallel with the boot
-       loader animation, so the redirect (if needed) happens while the
-       loader is still on screen — the viewer never sees a broken hub. */
-    probe().then(function (up) {
-      if (!up) { goOffline(); return; }
-      /* Server is up: keep watching in the background. */
-      setInterval(function () {
-        probe().then(function (stillUp) { if (!stillUp) goOffline(); });
-      }, RECHECK_MS);
+    var checking = false;
+    function check() {
+      if (checking) return;                                     // no overlapping probes
+      checking = true;
+      confirmedDown().then(function (down) {
+        checking = false;
+        if (down) goOffline();
+      });
+    }
+
+    /* Initial check runs immediately, in parallel with the boot loader, so a
+       redirect happens while the loader is still on screen. */
+    check();
+
+    /* Then keep watching. setInterval alone is not enough: browsers throttle
+       timers in background tabs to a minute or more, so a tab you are not
+       looking at would notice the outage minutes late. Re-checking the moment
+       the tab regains focus, and when the OS reports the network is back,
+       is what makes it feel immediate. */
+    setInterval(check, RECHECK_MS);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") check();
     });
+    window.addEventListener("online",  check);
+    window.addEventListener("pageshow", function (e) { if (e.persisted) check(); });
   })();
 
   /* ---------- Platform detection (for adaptive bottom nav) ---------- */
