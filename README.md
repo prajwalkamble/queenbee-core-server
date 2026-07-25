@@ -4,7 +4,11 @@
 
 **A self-hosted Linux server, the hub page it serves, and the failover that keeps its public URL useful when the machine behind it isn't.**
 
-[Hub](https://queenbee-core-srv.emperor-adelie.ts.net/server/) · [Offline page](https://prajwalkamble.github.io/queenbee-core-server/) · [About the build](https://prajwalkamble.github.io/queenbee-core-server/about-server.html)
+### [→ Open the server](https://prajwalkamble.github.io/queenbee-core-server/)
+
+[About the build](https://prajwalkamble.github.io/queenbee-core-server/about-server.html)
+
+<sub>Canonical address: <code>queenbee-core-srv.emperor-adelie.ts.net/server/</code> — the link above forwards there when the server is up, and shows the offline page when it isn't.</sub>
 
 </div>
 
