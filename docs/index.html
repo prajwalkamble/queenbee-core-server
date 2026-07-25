@@ -919,9 +919,8 @@
           headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({
             access_key: CONTACT_KEY,
-            subject: "New message from " + name + " · queenbee-core-srv",
+            subject: "New message from " + name + " @[queenbee-core-srv]",
             from_name: name,                       // display name only — the address is in replyto and the body
-            replyto: email,
             name: name, email: email, message: msg,
             botcheck: document.getElementById("botcheck").checked
           })
