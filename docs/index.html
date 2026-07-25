@@ -649,15 +649,12 @@
       var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       /* ---- CONFIG — the only lines you may ever need to edit ---- */
-      /* Reachability probe target.
-         MUST be /healthz, never /server/. The front node is always up, so
-         /server/ always answers something — probing it would report "up"
-         even while the laptop is off, this page would forward to the hub,
-         the front node would bounce it straight back here, and the two
-         would ping-pong forever. /healthz returns 200 ONLY while the
-         laptop itself answers, and sends CORS headers so we can read the
-         status code instead of guessing from an opaque response. */
-      var SERVER_URL     = "https://queenbee-core-srv.emperor-adelie.ts.net/healthz";
+      /* Reachability probe target: the hub itself. It answers only while the
+         server is up, so no separate health endpoint is needed.
+         NOTE: if you ever deploy front-node/, this must change to /healthz —
+         at that point the hub URL is answered by the front node whether or not
+         the server is awake, and probing it would loop this page against it. */
+      var SERVER_URL     = "https://queenbee-core-srv.emperor-adelie.ts.net/server/";
       /* Where to send the viewer once the server is back (standalone mode):
          · opened from LOCAL DISK  -> the hub sits one folder up (../index.html)
          · opened on GITHUB PAGES  -> there is no hub next to us; go to the
@@ -667,9 +664,9 @@
       /* About page destinations:
          · standalone: docs/index.html is our SIBLING in this folder        */
       var ABOUT_LOCAL    = "about-server.html";  // the About page is our sibling in docs/
-      var ABOUT_FALLBACK = "https://prajwalkamble.github.io/nightfury-server/about-server.html"; // error-page mode: absolute Pages URL (always up)
+      var ABOUT_FALLBACK = "https://prajwalkamble.github.io/queenbee-core-server/about-server.html"; // error-page mode: absolute Pages URL (always up)
       var ADMIN_EMAIL    = "prajwalkamble342000@gmail.com";              // ← REPLACE with your real address before deploying
-      var POLL_MS        = 8000;                                  // how often to re-check the server
+      var POLL_MS        = 5000;                                  // how often to re-check the server
 
       /* ---- Mode detection: this page is served as an Nginx error_page
          ONLY when the host is the server itself (ts.net). Opened from
@@ -710,11 +707,11 @@
           var ctrl = new AbortController();
           var timer = setTimeout(function () { ctrl.abort(); resolve(false); }, timeoutMs || 5000);
           if (standalone) {
-            /* Real CORS read — /healthz answers 200 only while the laptop
-               is up, 503 while the front node is covering for it. An
-               opaque no-cors probe cannot tell those apart. */
-            fetch(SERVER_URL + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
-              .then(function (res) { clearTimeout(timer); resolve(res.ok); })
+            /* Opaque no-cors probe: we cannot read a cross-origin status code
+               without CORS headers, and we do not need to. A resolved fetch
+               means the server answered; a rejection means it did not. */
+            fetch(SERVER_URL + "?ping=" + Date.now(), { mode: "no-cors", cache: "no-store", signal: ctrl.signal })
+              .then(function () { clearTimeout(timer); resolve(true); })
               .catch(function () { clearTimeout(timer); resolve(false); });
           } else {
             fetch(location.pathname + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })

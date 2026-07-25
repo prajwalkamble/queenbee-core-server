@@ -11,6 +11,7 @@
 # Leading slash = root only, so front-node/install.sh stays tracked.
 /deploy.sh
 /start-server.sh
+/diagnose.sh
 
 # ── docs/config.js is deliberately NOT ignored ─────────────────
 # GitHub Pages serves docs/. Ignore a file there and it never
