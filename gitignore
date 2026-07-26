@@ -12,6 +12,7 @@
 /deploy.sh
 /start-server.sh
 /diagnose.sh
+/verify.sh
 
 # ── docs/config.js is deliberately NOT ignored ─────────────────
 # GitHub Pages serves docs/. Ignore a file there and it never

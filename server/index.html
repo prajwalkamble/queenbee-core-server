@@ -12,6 +12,33 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
+  <!-- ══════════ TAB ICON ══════════
+       Embedded as a data URI rather than linked as a file. Nothing extra to
+       copy to the server or push to Pages — the icon travels inside this
+       page, so it cannot fall out of sync or 404 the way a separate file
+       can. Costs about 2 KB. -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJORlMiPiA8ZGVmcz4gPGxpbmVhckdyYWRpZW50IGlkPSJzIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+IDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiLz4gPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjYThhZWI4Ii8+IDwvbGluZWFyR3JhZGllbnQ+IDxsaW5lYXJHcmFkaWVudCBpZD0iYiIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPiA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNWFhOWZmIi8+IDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBhNWZkNiIvPiA8L2xpbmVhckdyYWRpZW50PiA8L2RlZnM+IDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjU2IiBmaWxsPSIjMGEwYjBlIi8+IDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjM0IiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjYikiIHN0cm9rZS13aWR0aD0iMjIiIHN0cm9rZS1kYXNoYXJyYXk9IjMwNCA2NCIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjQwIi8+IDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1NiAyNjIpIHNjYWxlKDEuMTYpIHRyYW5zbGF0ZSgtMjU2IC0yNjApIj4gPHBhdGggZmlsbD0idXJsKCNzKSIgZD0iTTcwIDM0NCBWMTk0IEw4OCAxNzYgSDEzNiBMMTg0IDI3MiBWMTc2IEgyMjIgVjMyNiBMMjA0IDM0NCBIMTU2IEwxMDggMjQ4IFYzNDQgWiIvPiA8cGF0aCBmaWxsPSJ1cmwoI2IpIiBkPSJNMjMyIDM0NCBWMTk0IEwyNTAgMTc2IEgzNDYgVjIxNCBIMjcyIFYyNDYgSDMzMCBWMjg0IEgyNzIgVjM0NCBaIi8+IDxwYXRoIGZpbGw9InVybCgjcykiIGQ9Ik0zNzggMTc2IEg0NDIgVjIxNCBIMzkwIFYyMzYgSDQyMCBMNDQyIDI1OCBWMzA4IEw0MTYgMzM0IEgzNTIgVjI5NiBINDA0IFYyNzQgSDM3NCBMMzUyIDI1MiBWMjAyIFoiLz4gPC9nPiA8L3N2Zz4=" />
+  <meta name="theme-color" content="#0a0b0e" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)" />
+
+  <!-- ══════════ SOCIAL CARD ══════════
+       og:image must be absolute, and points at the GitHub Pages copy even
+       here: when someone shares this link the scraper fetches the image
+       itself, and if this machine is asleep the preview comes back blank.
+       Pages is always up. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="NightFury's Server" />
+  <meta property="og:title" content="NightFury's Server · queenbee-core-srv" />
+  <meta property="og:description" content="A self-hosted Linux server built from scratch on a repurposed laptop. Projects, links, and the story of the machine serving this page." />
+  <meta property="og:url" content="https://queenbee-core-srv.emperor-adelie.ts.net/server/" />
+  <meta property="og:image" content="https://prajwalkamble.github.io/queenbee-core-server/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="NightFury's Server · queenbee-core-srv" />
+  <meta name="twitter:description" content="A self-hosted Linux server built from scratch on a repurposed laptop." />
+  <meta name="twitter:image" content="https://prajwalkamble.github.io/queenbee-core-server/og-image.png" />
+
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body id="top" class="is-loading">
