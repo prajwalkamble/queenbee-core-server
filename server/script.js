@@ -32,7 +32,7 @@
      ══════════════════════════════════════════════════════════════════ */
   (function () {
     /* ---- CONFIG — adjust these if your URLs ever change ---- */
-// <<<<<<< HEAD
+
     var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server/";
 // =======
     var SERVER_URL   = "https://queenbee-core-srv.emperor-adelie.ts.net/server/"; // probe target: the hub itself. It answers only when the server is up, so it IS the health check. 
