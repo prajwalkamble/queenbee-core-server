@@ -539,7 +539,7 @@
       </div>
     </div>
 
-    <h1>Currently, the server is offline.</h1>
+    <h1>Currently, the server is off.</h1>
     <p class="lede">
       It's either powered down, restarting, or mid-deployment. The machine brings
       itself back automatically, and this page checks every few seconds — the moment
@@ -710,8 +710,17 @@
             /* Opaque no-cors probe: we cannot read a cross-origin status code
                without CORS headers, and we do not need to. A resolved fetch
                means the server answered; a rejection means it did not. */
-            fetch(SERVER_URL + "?ping=" + Date.now(), { mode: "no-cors", cache: "no-store", signal: ctrl.signal })
-              .then(function () { clearTimeout(timer); resolve(true); })
+            /* CORS mode, not no-cors. Tailscale stays up when nginx dies and
+               answers with its own 502 — a valid HTTP response, which an
+               opaque no-cors probe resolves as success. That reads a dead
+               server as healthy and bounces the viewer back to it.
+               A real CORS read needs Access-Control-Allow-Origin, which the
+               hub sends and Tailscale's 502 page does not. So:
+                 nginx up   -> 200 + header -> readable -> up
+                 nginx down -> 502, no header -> rejected -> down
+                 machine off-> network failure -> rejected -> down */
+            fetch(SERVER_URL + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
+              .then(function (res) { clearTimeout(timer); resolve(res.ok); })
               .catch(function () { clearTimeout(timer); resolve(false); });
           } else {
             fetch(location.pathname + "?ping=" + Date.now(), { cache: "no-store", signal: ctrl.signal })
@@ -826,14 +835,45 @@
         });
       })();
 
-      /* ---- Background polling: keep checking while the visitor waits ---- */
-      setInterval(function () {
-        if (recovering) return;
+      /* ---- Background polling with backoff ----
+         A fixed 5s interval is right for someone who just arrived and is
+         watching, and wasteful for a tab left open for an hour: 720 requests
+         against a machine that is not answering, on someone else's battery
+         and data.
+         So the interval widens as failures accumulate — 5s, 10s, 20s, capped
+         at 30s — and snaps back to 5s the moment the visitor returns to the
+         tab or the OS reports the network is back. Attention is the signal:
+         someone looking at the page gets fast recovery, someone who wandered
+         off costs almost nothing. */
+      var POLL_MAX  = 30000;
+      var pollEvery = POLL_MS;
+      var pollTimer = null;
+
+      function schedulePoll(delay) {
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(runPoll, delay);
+      }
+
+      function runPoll() {
+        if (recovering) { schedulePoll(pollEvery); return; }
         probe().then(function (up) {
-          if (recovering || !up) return;
-          goHome();
+          if (recovering) return;
+          if (up) { goHome(); return; }
+          pollEvery = Math.min(pollEvery * 2, POLL_MAX);         // still down: ease off
+          schedulePoll(pollEvery);
         });
-      }, POLL_MS);
+      }
+
+      function pollNow() {                                       // visitor is back — check immediately
+        pollEvery = POLL_MS;
+        schedulePoll(0);
+      }
+
+      schedulePoll(pollEvery);
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") pollNow();
+      });
+      window.addEventListener("online", pollNow);
 
       /* ---- Speculative status: rotating playful lines while down ---- */
       var specEl = document.getElementById("specLine");
@@ -919,8 +959,9 @@
           headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({
             access_key: CONTACT_KEY,
-            subject: "New message from " + name + " @[queenbee-core-srv]",
+            subject: "New message from " + name + " [queenbee-core-srv]",
             from_name: name,                       // display name only — the address is in replyto and the body
+            replyto: email,
             name: name, email: email, message: msg,
             botcheck: document.getElementById("botcheck").checked
           })
